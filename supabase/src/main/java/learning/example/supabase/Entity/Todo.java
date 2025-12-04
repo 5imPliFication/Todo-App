@@ -15,8 +15,12 @@ public class Todo {
     private Long id;
 
     private String title;
+    private String note;
 
     @Column(insertable = false)
     private Boolean completed;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id")
+    private Account account;
 }

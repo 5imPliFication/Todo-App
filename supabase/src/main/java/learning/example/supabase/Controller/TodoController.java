@@ -1,7 +1,8 @@
 package learning.example.supabase.Controller;
 
-import learning.example.supabase.Entity.Todo;
-import learning.example.supabase.Service.TodoService;
+import learning.example.supabase.DTOs.TodoRequest;
+import learning.example.supabase.DTOs.TodoResponse;
+import learning.example.supabase.Service.ServiceImpl.TodoServiceImpl;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,25 +11,25 @@ import java.util.List;
 @RequestMapping("/api/todos")
 public class TodoController {
 
-    private final TodoService service;
+    private final TodoServiceImpl service;
 
-    public TodoController(TodoService service) {
+    public TodoController(TodoServiceImpl service) {
         this.service = service;
     }
 
     @PostMapping
-    public Todo create(@RequestBody Todo todo) {
-        return service.create(todo);
+    public TodoResponse create(@RequestBody TodoRequest request) {
+        return service.createTodo(request);
     }
 
-    @GetMapping
-    public List<Todo> getAll() {
-        return service.getAll();
+    @GetMapping()
+    public List<TodoResponse> getAll() {
+        return service.getAllTodos();
     }
 
     @PatchMapping("/{id}")
-    public Todo update(@PathVariable Long id, @RequestBody Todo todo) {
-        return service.update(id, todo);
+    public TodoResponse update(@PathVariable Long id, @RequestBody TodoRequest request) {
+        return service.update(id, request);
     }
 
     @DeleteMapping("/{id}")
@@ -38,7 +39,11 @@ public class TodoController {
         }else{
             System.out.println("Todo not found!");
         }
+    }
 
+    @GetMapping("/accounts/{id}")
+    public List<TodoResponse> getByAccount(@PathVariable Long id) {
+        return service.getTodoById(id);
     }
 }
 
