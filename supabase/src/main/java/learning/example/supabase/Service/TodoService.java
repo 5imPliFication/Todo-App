@@ -6,9 +6,12 @@ import learning.example.supabase.DTOs.TodoResponse;
 import java.util.List;
 
 public interface TodoService {
-    TodoResponse createTodo(TodoRequest request);
+    void delete(Long id);
+
+    TodoResponse createTodo(TodoRequest request, Long accountId);
     List<TodoResponse> getAllTodos();
-    List<TodoResponse> getTodoById(Long id);
+    List<TodoResponse> getTodoByAccountId(Long id);
     TodoResponse getTodoByTitle(String title);
 
+    TodoResponse getById(Long id);
 }

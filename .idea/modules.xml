@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Todo-App.iml" filepath="$PROJECT_DIR$/.idea/Todo-App.iml" />
-      <module fileurl="file://$PROJECT_DIR$/supabase/supabase.iml" filepath="$PROJECT_DIR$/supabase/supabase.iml" />
     </modules>
   </component>
 </project>

@@ -1,11 +1,13 @@
 package learning.example.supabase.Controller;
 
-import learning.example.supabase.DTOs.AccountRequest;
-import learning.example.supabase.DTOs.AccountResponse;
-import learning.example.supabase.DTOs.TodoRequest;
-import learning.example.supabase.DTOs.TodoResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import learning.example.supabase.DTOs.*;
 import learning.example.supabase.Service.ServiceImpl.AccountServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public AccountResponse create(@RequestBody AccountRequest request) {
+    public AccountResponse create(@Valid @RequestBody AccountRequest request) {
         return accountService.createAccount(request);
     }
 
@@ -35,14 +37,34 @@ public class AccountController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        if(id != null) {
-            accountService.delete(id);
-        }else{
-            System.out.println("Todo not found!");
-        }
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        accountService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     //RELEASE MEEEEEEEEEEEEEEEEEEEEEEE!!!!!
+    //functions
+    @PostMapping("/login")
+    public ResponseEntity<AccountResponse> login(
+            @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        AccountResponse account = accountService.login(request);
 
+        if (account != null) {
+
+            // manually create session
+            HttpSession session = httpRequest.getSession(true);
+            session.setAttribute("account", account);  // store user for later use
+
+            return ResponseEntity.ok(account);
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+//    @PostMapping("/logout")
+//    public ResponseEntity<AccountResponse> logout(@RequestBody LoginRequest request) {
+//
+//    }
 }
