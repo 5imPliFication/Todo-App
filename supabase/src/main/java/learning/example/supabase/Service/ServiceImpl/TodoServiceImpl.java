@@ -30,6 +30,7 @@ public class TodoServiceImpl implements TodoService {
         response.setTitle(todo.getTitle());
         response.setNote(todo.getNote());
         response.setCompleted(todo.getCompleted());
+
         return response;
     }
 

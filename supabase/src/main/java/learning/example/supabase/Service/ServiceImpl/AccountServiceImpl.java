@@ -31,7 +31,7 @@ public class AccountServiceImpl implements AccountService {
         response.setId(account.getId());
         response.setUsername(account.getUsername());
         response.setEmail(account.getEmail());
-        // Do  not include password in response for security
+
         return response;
     }
 

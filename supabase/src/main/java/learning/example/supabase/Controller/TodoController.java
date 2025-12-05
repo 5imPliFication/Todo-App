@@ -24,7 +24,7 @@ public class TodoController {
         this.service = service;
     }
 
-    @PostMapping
+    @PostMapping()
     public TodoResponse create(HttpServletRequest request, @RequestBody TodoRequest todoRequest) {
         HttpSession session = request.getSession(false);
 
@@ -61,16 +61,34 @@ public class TodoController {
     }
 
     @GetMapping("/my") // Renamed path variable for clarity
-    public List<TodoResponse> getByAccount(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+    public ResponseEntity<List<TodoResponse>> getMyTodos(HttpSession session) {
+        try {
+            System.out.println("=== Getting My Todos ===");
+            System.out.println("Session ID: " + (session != null ? session.getId() : "null"));
 
-        if (session == null || session.getAttribute("account") == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            if (session == null) {
+                System.out.println("Session is null");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            AccountResponse account = (AccountResponse) session.getAttribute("account");
+            System.out.println("Account from session: " + account);
+
+            if (account == null) {
+                System.out.println("No account in session");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            System.out.println("Account ID: " + account.getId());
+            List<TodoResponse> todos = service.getTodoByAccountId(account.getId());
+            System.out.println("Found " + todos.size() + " todos");
+
+            return ResponseEntity.ok(todos);
+        } catch (Exception e) {
+            System.out.println("Error in getMyTodos: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        AccountResponse acc = (AccountResponse) session.getAttribute("account");
-
-        return service.getTodoByAccountId(acc.getId());
     }
 }
 

@@ -44,6 +44,15 @@ public class AccountController {
 
     //RELEASE MEEEEEEEEEEEEEEEEEEEEEEE!!!!!
     //functions
+
+    @GetMapping("/login")
+    public ResponseEntity<String> loginGet(@RequestParam(value = "error", required = false) String error) {
+        if (error != null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
+        }
+        return ResponseEntity.ok("Please login via POST");
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AccountResponse> login(
             @RequestBody LoginRequest request,

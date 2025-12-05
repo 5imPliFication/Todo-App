@@ -93,6 +93,7 @@ function logout() {
 async function loadTodos() {
     try {
         const response = await fetch(`${API_URL}/todos/my`, {
+            method: 'GET',
             credentials: 'include'
         });
         if (!response.ok) {
@@ -148,13 +149,13 @@ document.getElementById('addTodoForm').addEventListener('submit', async (e) => {
     try {
         const response = await fetch(`${API_URL}/todos`, {
             method: 'POST',
-            credentials: 'include', // IMPORTANT for Spring Security sessions
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 title,
                 note,
                 completed: false,
-                account: currentAccount.id
+                accountId: currentAccount.id
             })
         });
 
@@ -165,10 +166,9 @@ document.getElementById('addTodoForm').addEventListener('submit', async (e) => {
         await loadTodos();
 
     } catch (error) {
-        showMessage('todoMessage', 'Failed to add todo' + error.toString(), true);
+        showMessage('todoMessage', 'Failed to add todo', true);
     }
 });
-
 
 // Toggle Todo
 async function toggleTodo(id, completed) {
