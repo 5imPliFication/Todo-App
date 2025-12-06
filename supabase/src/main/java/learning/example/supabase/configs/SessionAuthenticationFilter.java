@@ -31,7 +31,7 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
                 // Create authentication token
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                account.getUsername(),
+                                account,
                                 null,
                                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
                         );
@@ -40,7 +40,6 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }

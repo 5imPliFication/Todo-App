@@ -30,9 +30,10 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
+                .securityContext(security -> security.requireExplicitSave(false))
                 .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) //Add filter
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/accounts/register", "/api/accounts/login").permitAll()
+                        .requestMatchers("/api/accounts/register", "/api/accounts/login", "/api/accounts/me").permitAll()
                         .requestMatchers("/api/todos/**").authenticated()
                         .anyRequest().permitAll()
                 )

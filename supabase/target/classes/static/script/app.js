@@ -1,7 +1,37 @@
-// API Base URL - UPDATE THIS to your backend URL
 const API_URL = 'http://localhost:8080/api';
 
 let currentAccount = null;
+
+// Check session on page load
+window.addEventListener('DOMContentLoaded', async () => {
+    await checkSession();
+});
+
+// Check if user has active session
+async function checkSession() {
+    try {
+        const response = await fetch(`${API_URL}/accounts/me`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            currentAccount = await response.json();
+            console.log('Session found for user:', currentAccount.username);
+
+            // Show todo section
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('todoSection').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentAccount.username;
+            await loadTodos();
+        } else {
+            console.log('No active session');
+        }
+    } catch (error) {
+        console.log('Session check failed:', error);
+        // Stay on login page
+    }
+}
 
 // Show/Hide Forms
 function showLoginForm() {
@@ -22,7 +52,7 @@ function showRegisterForm() {
 function showMessage(elementId, message, isError = false) {
     const el = document.getElementById(elementId);
     el.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
-    setTimeout(() => el.innerHTML = '', 3000);
+    setTimeout(() => el.innerHTML = '', 4000);
 }
 
 // Login
@@ -38,7 +68,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-
 
         if (response.ok) {
             currentAccount = await response.json();
@@ -81,7 +110,17 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 });
 
 // Logout
-function logout() {
+async function logout() {
+    try {
+        await fetch(`${API_URL}/accounts/logout`, {
+            method: 'POST',
+            credentials: 'include' // VERY IMPORTANT to send the session cookie
+        });
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
+
+    // Clear UI state
     currentAccount = null;
     document.getElementById('authSection').classList.remove('hidden');
     document.getElementById('todoSection').classList.add('hidden');
@@ -96,10 +135,11 @@ async function loadTodos() {
             method: 'GET',
             credentials: 'include'
         });
+
         if (!response.ok) {
-            console.log("LoadTodos response status:", response.status);
-            throw new Error();
+            throw new Error('Failed to load todos');
         }
+
         const todos = await response.json();
         renderTodos(todos);
     } catch (error) {
@@ -113,7 +153,7 @@ function renderTodos(todos) {
     list.innerHTML = '';
 
     if (todos.length === 0) {
-        list.innerHTML = '<li style="text-align: center; color: #999; padding: 20px;">No todos yet. Add one above!</li>';
+        list.innerHTML = '<li class="empty-state">No todos yet. Add your first task above! 🎯</li>';
         return;
     }
 
@@ -128,7 +168,8 @@ function renderTodos(todos) {
                         ${todo.note ? `<div class="todo-note">${escapeHtml(todo.note)}</div>` : ''}
                     </div>
                     <div class="todo-actions">
-                        <button class="danger" onclick="deleteTodo(${todo.id},${todo.completed})">Delete</button>
+                        <button class="edit" onclick="openEditModal(${todo.id}, '${escapeHtml(todo.title).replace(/'/g, "\\'")}', '${escapeHtml(todo.note || '').replace(/'/g, "\\'")}', ${todo.completed})">Edit</button>
+                        <button class="danger" onclick="deleteTodo(${todo.id})">Delete</button>
                     </div>
                 `;
         list.appendChild(li);
@@ -138,13 +179,8 @@ function renderTodos(todos) {
 // Add Todo
 document.getElementById('addTodoForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const title = document.getElementById('todoTitle').value.trim();
-    const note = document.getElementById('todoNote').value.trim();
-
-    if (!currentAccount || !currentAccount.id) {
-        return showMessage('todoMessage', 'You must log in first', true);
-    }
+    const title = document.getElementById('todoTitle').value;
+    const note = document.getElementById('todoNote').value;
 
     try {
         const response = await fetch(`${API_URL}/todos`, {
@@ -159,12 +195,13 @@ document.getElementById('addTodoForm').addEventListener('submit', async (e) => {
             })
         });
 
-        if (!response.ok) throw new Error();
-
-        document.getElementById('addTodoForm').reset();
-        showMessage('todoMessage', 'Todo added successfully!');
-        await loadTodos();
-
+        if (response.ok) {
+            document.getElementById('addTodoForm').reset();
+            showMessage('todoMessage', 'Todo added successfully! 🎉');
+            await loadTodos();
+        } else {
+            showMessage('todoMessage', 'Failed to add todo', true);
+        }
     } catch (error) {
         showMessage('todoMessage', 'Failed to add todo', true);
     }
@@ -179,7 +216,6 @@ async function toggleTodo(id, completed) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ completed })
         });
-
         await loadTodos();
     } catch (error) {
         showMessage('todoMessage', 'Failed to update todo', true);
@@ -187,23 +223,75 @@ async function toggleTodo(id, completed) {
 }
 
 // Delete Todo
-async function deleteTodo(id,completed) {
+async function deleteTodo(id) {
     if (!confirm('Are you sure you want to delete this todo?')) return;
 
     try {
         await fetch(`${API_URL}/todos/${id}`, {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ completed })
+            method: 'DELETE',
+            credentials: 'include'
         });
-
-        showMessage('todoMessage', 'Todo deleted successfully!');
+        showMessage('todoMessage', 'Todo deleted successfully! ✓');
         await loadTodos();
     } catch (error) {
         showMessage('todoMessage', 'Failed to delete todo', true);
     }
 }
+
+// Open Edit Modal
+function openEditModal(id, title, note, completed) {
+    document.getElementById('editTodoId').value = id;
+    document.getElementById('editTodoTitle').value = title;
+    document.getElementById('editTodoNote').value = note;
+    document.getElementById('editTodoCompleted').checked = completed;
+    document.getElementById('editModal').classList.add('active');
+}
+
+// Close Edit Modal
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+    document.getElementById('editTodoForm').reset();
+}
+
+// Edit Todo Form Submit
+document.getElementById('editTodoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('editTodoId').value;
+    const title = document.getElementById('editTodoTitle').value;
+    const note = document.getElementById('editTodoNote').value;
+    const completed = document.getElementById('editTodoCompleted').checked;
+
+    try {
+        const response = await fetch(`${API_URL}/todos/${id}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                note,
+                completed
+            })
+        });
+
+        if (response.ok) {
+            showMessage('todoMessage', 'Todo updated successfully! ✓');
+            closeEditModal();
+            await loadTodos();
+        } else {
+            showMessage('todoMessage', 'Failed to update todo', true);
+        }
+    } catch (error) {
+        showMessage('todoMessage', 'Failed to update todo', true);
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('editModal').addEventListener('click', (e) => {
+    if (e.target.id === 'editModal') {
+        closeEditModal();
+    }
+});
 
 // Escape HTML to prevent XSS
 function escapeHtml(text) {

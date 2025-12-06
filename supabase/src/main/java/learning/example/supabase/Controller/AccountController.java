@@ -1,6 +1,8 @@
 package learning.example.supabase.Controller;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import learning.example.supabase.DTOs.*;
@@ -8,6 +10,7 @@ import learning.example.supabase.Service.ServiceImpl.AccountServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,12 +48,21 @@ public class AccountController {
     //RELEASE MEEEEEEEEEEEEEEEEEEEEEEE!!!!!
     //functions
 
-    @GetMapping("/login")
-    public ResponseEntity<String> loginGet(@RequestParam(value = "error", required = false) String error) {
-        if (error != null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
+    @GetMapping("/me")
+    public ResponseEntity<AccountResponse> getCurrentUser(HttpSession session) {
+        System.out.println("=== Checking current user session ===");
+        System.out.println("Session ID: " + (session != null ? session.getId() : "null"));
+
+        if (session != null) {
+            AccountResponse account = (AccountResponse) session.getAttribute("account");
+            System.out.println("Account in session: " + (account != null ? account.getUsername() : "null"));
+
+            if (account != null) {
+                return ResponseEntity.ok(account);
+            }
         }
-        return ResponseEntity.ok("Please login via POST");
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @PostMapping("/login")
@@ -61,7 +73,6 @@ public class AccountController {
         AccountResponse account = accountService.login(request);
 
         if (account != null) {
-
             // manually create session
             HttpSession session = httpRequest.getSession(true);
             session.setAttribute("account", account);  // store user for later use
@@ -72,8 +83,20 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-//    @PostMapping("/logout")
-//    public ResponseEntity<AccountResponse> logout(@RequestBody LoginRequest request) {
-//
-//    }
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        System.out.println("=== Logout Request ===");
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            System.out.println("Invalidating session: " + session.getId());
+            session.invalidate();
+        }
+
+        // Clear Spring Security context
+        SecurityContextHolder.clearContext();
+
+        System.out.println("Logout successful");
+        return ResponseEntity.ok().build();
+    }
 }

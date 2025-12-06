@@ -1,6 +1,7 @@
 package learning.example.supabase.Service.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import learning.example.supabase.DTOs.AccountRequest;
 import learning.example.supabase.DTOs.AccountResponse;
 import learning.example.supabase.DTOs.TodoRequest;
@@ -19,11 +20,13 @@ import java.util.List;
 public class TodoServiceImpl implements TodoService {
     private final TodoRepository repo;
     private final AccountRepository accountRepo;
+
     @Autowired
-    public TodoServiceImpl(TodoRepository repo,  AccountRepository accountRepo) {
+    public TodoServiceImpl(TodoRepository repo, AccountRepository accountRepo) {
         this.repo = repo;
         this.accountRepo = accountRepo;
     }
+
     private TodoResponse mapToResponse(Todo todo) {
         TodoResponse response = new TodoResponse();
         response.setId(todo.getId());
@@ -37,12 +40,23 @@ public class TodoServiceImpl implements TodoService {
     public TodoResponse update(Long id, TodoRequest newData) {
         Todo todo = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Todo not found"));
+        if (newData.getTitle() != null) {
+            todo.setTitle(newData.getTitle());
+        }
+        if (newData.getNote() != null) {
+            todo.setNote(newData.getNote());
+        }
+        if (newData.getCompleted() != null) {
+            todo.setCompleted(newData.getCompleted());
+        }
+        // If accountId is provided, update the account relationship
+        if (newData.getAccountId() != null) {
+            Account account = accountRepo.findById(newData.getAccountId())
+                    .orElseThrow(() -> new RuntimeException("Account not found"));
+            todo.setAccount(account);
+        }
 
-        todo.setTitle(newData.getTitle());
-        todo.setNote(newData.getNote());
-        todo.setCompleted(newData.getCompleted());
         Todo saved = repo.save(todo);
-
         return mapToResponse(saved);
     }
 

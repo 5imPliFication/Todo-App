@@ -2,224 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo Application</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .auth-section, .todo-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        h1, h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="password"],
-        input[type="email"],
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        input:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.3s;
-            margin-right: 10px;
-        }
-
-        button:hover {
-            background: #5568d3;
-        }
-
-        button.secondary {
-            background: #95a5a6;
-        }
-
-        button.secondary:hover {
-            background: #7f8c8d;
-        }
-
-        button.danger {
-            background: #e74c3c;
-        }
-
-        button.danger:hover {
-            background: #c0392b;
-        }
-
-        .user-info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .todo-form {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .todo-list {
-            list-style: none;
-        }
-
-        .todo-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: flex-start;
-            transition: transform 0.2s;
-        }
-
-        .todo-item:hover {
-            transform: translateX(5px);
-        }
-
-        .todo-item.completed {
-            opacity: 0.6;
-        }
-
-        .todo-checkbox {
-            width: 20px;
-            height: 20px;
-            margin-right: 15px;
-            cursor: pointer;
-            margin-top: 2px;
-        }
-
-        .todo-content {
-            flex: 1;
-        }
-
-        .todo-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .todo-item.completed .todo-title {
-            text-decoration: line-through;
-        }
-
-        .todo-note {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .todo-actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .todo-actions button {
-            padding: 6px 12px;
-            font-size: 12px;
-            margin: 0;
-        }
-
-        .error {
-            background: #fee;
-            color: #c00;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .success {
-            background: #efe;
-            color: #060;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab-buttons button {
-            flex: 1;
-        }
-
-        .tab-buttons button.active {
-            background: #764ba2;
-        }
-    </style>
+    <title>Todo App - Login</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="container">
     <!-- Authentication Section -->
     <div id="authSection" class="auth-section">
-        <h1>Todo App</h1>
+        <div class="app-header">
+            <h1>🔥 Todo App</h1>
+        </div>
+        <p class="app-subtitle">Organize your tasks with warmth and style</p>
+
         <div id="authMessage"></div>
 
         <div class="tab-buttons">
@@ -228,31 +22,31 @@
         </div>
 
         <!-- Login Form -->
-        <form id="loginForm" method="post">
+        <form id="loginForm">
             <div class="form-group">
                 <label for="loginUsername">Username</label>
-                <input type="text" id="loginUsername" required>
+                <input type="text" id="loginUsername" required placeholder="Enter your username">
             </div>
             <div class="form-group">
                 <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" required>
+                <input type="password" id="loginPassword" required placeholder="Enter your password">
             </div>
             <button type="submit">Login</button>
         </form>
 
         <!-- Register Form -->
-        <form id="registerForm" class="hidden" method="post">
+        <form id="registerForm" class="hidden">
             <div class="form-group">
                 <label for="registerUsername">Username</label>
-                <input type="text" id="registerUsername" required>
+                <input type="text" id="registerUsername" required placeholder="Choose a username">
             </div>
             <div class="form-group">
                 <label for="registerEmail">Email</label>
-                <input type="email" id="registerEmail" required>
+                <input type="email" id="registerEmail" required placeholder="Enter your email">
             </div>
             <div class="form-group">
                 <label for="registerPassword">Password</label>
-                <input type="password" id="registerPassword" required>
+                <input type="password" id="registerPassword" required placeholder="Choose a password">
             </div>
             <button type="submit">Register</button>
         </form>
@@ -260,11 +54,11 @@
 
     <!-- Todo Section -->
     <div id="todoSection" class="todo-section hidden">
-        <h1>My Todos</h1>
+        <h1>✨ My Todos</h1>
 
         <div class="user-info">
             <div>
-                <strong>Logged in as:</strong> <span id="currentUser"></span>
+                <strong>Welcome back,</strong> <span id="currentUser"></span>
             </div>
             <button class="secondary" onclick="logout()">Logout</button>
         </div>
@@ -273,26 +67,57 @@
 
         <!-- Add Todo Form -->
         <div class="todo-form">
-            <h2>Add New Todo</h2>
+            <h2>➕ Add New Todo</h2>
             <form id="addTodoForm">
                 <div class="form-group">
                     <label for="todoTitle">Title</label>
-                    <input type="text" id="todoTitle" required>
+                    <input type="text" id="todoTitle" required placeholder="What needs to be done?">
                 </div>
                 <div class="form-group">
-                    <label for="todoNote">Note</label>
-                    <textarea id="todoNote"></textarea>
+                    <label for="todoNote">Note (optional)</label>
+                    <textarea id="todoNote" placeholder="Add some details..."></textarea>
                 </div>
                 <button type="submit">Add Todo</button>
             </form>
         </div>
 
         <!-- Todo List -->
-        <h2>Your Todos</h2>
+        <h2>📋 Your Tasks</h2>
         <ul id="todoList" class="todo-list"></ul>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Edit Todo</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editTodoForm">
+                <input type="hidden" id="editTodoId">
+                <div class="form-group">
+                    <label for="editTodoTitle">Title</label>
+                    <input type="text" id="editTodoTitle" required placeholder="Todo title">
+                </div>
+                <div class="form-group">
+                    <label for="editTodoNote">Note</label>
+                    <textarea id="editTodoNote" placeholder="Add some details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="editTodoCompleted" style="width: auto; margin-right: 8px;">
+                        Mark as completed
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit">Save Changes</button>
+                    <button type="button" class="secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="script/app.js"></script>
+
 </body>
 </html>
