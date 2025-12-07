@@ -82,7 +82,6 @@ public class TodoController {
             System.out.println("Account ID: " + account.getId());
             List<TodoResponse> todos = service.getTodoByAccountId(account.getId());
             System.out.println("Found " + todos.size() + " todos");
-
             return ResponseEntity.ok(todos);
         } catch (Exception e) {
             System.out.println("Error in getMyTodos: " + e.getMessage());

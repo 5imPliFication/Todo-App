@@ -15,4 +15,6 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Optional<Todo> findByTitle(String title);
 
     List<Todo> findByAccount(Account account);
+
+    List<Todo> findByAccountId(Long accountId);
 }

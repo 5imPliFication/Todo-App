@@ -1,8 +1,6 @@
 package learning.example.supabase.Controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import learning.example.supabase.DTOs.*;
@@ -49,20 +47,23 @@ public class AccountController {
     //functions
 
     @GetMapping("/me")
-    public ResponseEntity<AccountResponse> getCurrentUser(HttpSession session) {
+    public ResponseEntity<AccountResponse> getCurrentUser(HttpServletRequest request) {
         System.out.println("=== Checking current user session ===");
-        System.out.println("Session ID: " + (session != null ? session.getId() : "null"));
-
-        if (session != null) {
-            AccountResponse account = (AccountResponse) session.getAttribute("account");
-            System.out.println("Account in session: " + (account != null ? account.getUsername() : "null"));
-
-            if (account != null) {
-                return ResponseEntity.ok(account);
-            }
+        HttpSession session = request.getSession(false); //don't create if doesn't exist
+        if (session == null) {
+            System.out.println("No session exists");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        System.out.println("Session ID: " + session.getId());
+        AccountResponse account = (AccountResponse) session.getAttribute("account");
+
+        if (account == null) {
+            System.out.println("Session exists but no account stored");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        System.out.println("Account found: " + account.getUsername());
+        return ResponseEntity.ok(account);
     }
 
     @PostMapping("/login")
@@ -74,9 +75,15 @@ public class AccountController {
 
         if (account != null) {
             // manually create session
-            HttpSession session = httpRequest.getSession(true);
-            session.setAttribute("account", account);  // store user for later use
-
+            HttpSession session = httpRequest.getSession(false);
+            if(session != null) {
+                session.invalidate(); //invalidate, remove any previously created session
+            }
+            else {
+                HttpSession newSession = httpRequest.getSession(true); // create if didnt exist
+                assert newSession != null;
+                newSession.setAttribute("account", account);  // store user for later use
+            }
             return ResponseEntity.ok(account);
         }
 
@@ -92,7 +99,6 @@ public class AccountController {
             System.out.println("Invalidating session: " + session.getId());
             session.invalidate();
         }
-
         // Clear Spring Security context
         SecurityContextHolder.clearContext();
 

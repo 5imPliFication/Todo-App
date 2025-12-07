@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TodoServiceImpl implements TodoService {
@@ -97,19 +98,16 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public List<TodoResponse> getTodoByAccountId(Long id) {
-        Account account = accountRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+    public List<TodoResponse> getTodoByAccountId(Long accountId) {
+        System.out.println("Fetching todos for account: " + accountId);
 
-        List<Todo> todos = repo.findByAccount(account);
+        List<Todo> todos = repo.findByAccountId(accountId);
+
+        System.out.println("Found " + todos.size() + " todos");
 
         return todos.stream()
-                .map(todo -> new TodoResponse(
-                        todo.getId(),
-                        todo.getTitle(),
-                        todo.getNote(),
-                        todo.getCompleted()
-                )).toList();
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
