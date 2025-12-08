@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Application</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- Authentication Section -->
+    <div id="authSection" class="auth-section">
+        <div class="app-header">
+            <h1>🔥 Todo App</h1>
+        </div>
+        <p class="app-subtitle">Organize your tasks with warmth and style</p>
+
+        <div id="authMessage"></div>
+
+        <div class="tab-buttons">
+            <button id="loginTab" class="active" onclick="showLoginForm()">Login</button>
+            <button id="registerTab" onclick="showRegisterForm()">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" required placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required placeholder="Enter your password">
+            </div>
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="hidden">
+            <div class="form-group">
+                <label for="registerUsername">Username</label>
+                <input type="text" id="registerUsername" required placeholder="Choose a username">
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" required placeholder="Choose a password">
+            </div>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <!-- Todo Section -->
+    <div id="todoSection" class="todo-section hidden">
+        <h1>✨ My Todos</h1>
+
+        <div class="user-info">
+            <div>
+                <strong>Welcome back,</strong> <span id="currentUser"></span>
+            </div>
+            <button class="secondary" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="todoMessage"></div>
+
+        <!-- Add Todo Form -->
+        <div class="todo-form">
+            <h2>➕ Add New Todo</h2>
+            <form id="addTodoForm">
+                <div class="form-group">
+                    <label for="todoTitle">Title</label>
+                    <input type="text" id="todoTitle" required placeholder="What needs to be done?">
+                </div>
+                <div class="form-group">
+                    <label for="todoNote">Note (optional)</label>
+                    <textarea id="todoNote" placeholder="Add some details..."></textarea>
+                </div>
+                <button type="submit">Add Todo</button>
+            </form>
+        </div>
+
+        <!-- Search and Sort Controls -->
+        <h2>📋 Your Tasks</h2>
+        <div class="controls-bar">
+            <div class="search-box">
+                <label for="searchInput"></label>
+                <input type="text" id="searchInput" placeholder="Search todos..." onkeyup="filterAndSortTodos()">
+            </div>
+            <div class="sort-box">
+                <label for="sortSelect"></label>
+                <select id="sortSelect" onchange="filterAndSortTodos()">
+                    <option value="none">Sort by...</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                    <option value="title-desc">Title (Z-A)</option>
+                    <option value="completed">Completed First</option>
+                    <option value="uncompleted">Uncompleted First</option>
+                </select>
+            </div>
+        </div>
+        <!-- Todo List -->
+        <ul id="todoList" class="todo-list"></ul>
+    </div>
+</div>
+
+<script src="script/app.js"></script>
+</body>
+</html>

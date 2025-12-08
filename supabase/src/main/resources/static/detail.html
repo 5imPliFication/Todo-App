@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Details</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="detail-section">
+        <div class="detail-header">
+            <h1>📝 Edit Todo</h1>
+            <a href="index.html" class="back-button">← Back to List</a>
+        </div>
+
+        <!-- Message Area -->
+        <div id="detailMessage" class="message"></div>
+
+        <!-- Edit Form (Always Visible) -->
+        <form id="todoForm" class="edit-form">
+            <div class="form-group">
+                <label for="todoTitle">Title *</label>
+                <input type="text" id="todoTitle" class="form-input"
+                       placeholder="What needs to be done?"
+                       required>
+                <div class="error-message" id="titleError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="todoNote">Notes</label>
+                <textarea id="todoNote" class="form-textarea"
+                          rows="5"
+                          placeholder="Add detailed notes, instructions, or context..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="todoCompleted">
+                    <span>Mark as completed</span>
+                </label>
+            </div>
+
+            <!-- Hidden fields for data -->
+            <input type="hidden" id="todoId">
+            <input type="hidden" id="createdAt">
+
+            <!-- Metadata Display (Read-only) -->
+<!--            <div class="metadata">-->
+<!--                <div class="metadata-item">-->
+<!--                    <span class="metadata-label">Created:</span>-->
+<!--                    <span id="createdDate">Loading...</span>-->
+<!--                </div>-->
+<!--                <div class="metadata-item">-->
+<!--                    <span class="metadata-label">Last Updated:</span>-->
+<!--                    <span id="updatedDate">Loading...</span>-->
+<!--                </div>-->
+<!--            </div>-->
+        </form>
+
+        <!-- Action Buttons -->
+        <div class="action-bar">
+            <button type="button" onclick="saveTodo()" class="btn btn-save" id="saveBtn">
+                💾 Save Changes
+            </button>
+
+            <button type="button" onclick="cancelEdit()" class="btn btn-cancel">
+                ❌ Cancel
+            </button>
+
+            <button type="button" onclick="deleteTodo()" class="btn btn-delete">
+                🗑️ Delete Todo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2 class="modal-header">Confirm Delete</h2>
+        <p>Are you sure you want to delete this todo? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button onclick="confirmDelete()" class="btn btn-confirm-delete">Yes, Delete</button>
+            <button onclick="closeModal()" class="btn btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="script/detail.js"></script>
+</body>
+</html>
