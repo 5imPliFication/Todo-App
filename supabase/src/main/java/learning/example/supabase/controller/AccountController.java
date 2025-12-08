@@ -1,13 +1,15 @@
-package learning.example.supabase.Controller;
+package learning.example.supabase.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import learning.example.supabase.DTOs.*;
-import learning.example.supabase.Service.ServiceImpl.AccountServiceImpl;
+import learning.example.supabase.service.serviceImpl.AccountServiceImpl;
+import learning.example.supabase.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +19,10 @@ import java.util.List;
 @RequestMapping("api/accounts")
 public class AccountController {
     private final AccountServiceImpl accountService;
+    private final JwtUtil jwtUtil;
     @Autowired
-    public AccountController(AccountServiceImpl accountService) {
+    public AccountController(AccountServiceImpl accountService, JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
         this.accountService = accountService;
     }
 
@@ -47,46 +51,35 @@ public class AccountController {
     //functions
 
     @GetMapping("/me")
-    public ResponseEntity<AccountResponse> getCurrentUser(HttpServletRequest request) {
-        System.out.println("=== Checking current user session ===");
-        HttpSession session = request.getSession(false); //don't create if doesn't exist
-        if (session == null) {
-            System.out.println("No session exists");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<AccountResponse> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        System.out.println("Session ID: " + session.getId());
-        AccountResponse account = (AccountResponse) session.getAttribute("account");
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+            Long userId = (Long) authentication.getDetails();
 
-        if (account == null) {
-            System.out.println("Session exists but no account stored");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            // Get account from service
+            AccountResponse account = accountService.getAccountById(userId);
+            return ResponseEntity.ok(account);
         }
-        System.out.println("Account found: " + account.getUsername());
-        return ResponseEntity.ok(account);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AccountResponse> login(
-            @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest
-    ) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        System.out.println("=== Login Attempt ===");
         AccountResponse account = accountService.login(request);
 
         if (account != null) {
-            // manually create session
-            HttpSession session = httpRequest.getSession(false);
-            if(session != null) {
-                session.invalidate(); //invalidate, remove any previously created session
-            }
-            else {
-                HttpSession newSession = httpRequest.getSession(true); // create if didnt exist
-                assert newSession != null;
-                newSession.setAttribute("account", account);  // store user for later use
-            }
-            return ResponseEntity.ok(account);
-        }
+            // Generate JWT token
+            String token = jwtUtil.generateToken(account.getUsername(), account.getId());
 
+            System.out.println("Login successful for: " + account.getUsername());
+            System.out.println("Generated token: " + token.substring(0, 20) + "...");
+
+            LoginResponse response = new LoginResponse(account, token);
+            return ResponseEntity.ok(response);
+        }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 

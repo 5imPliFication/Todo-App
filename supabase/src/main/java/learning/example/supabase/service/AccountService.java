@@ -1,10 +1,8 @@
-package learning.example.supabase.Service;
+package learning.example.supabase.service;
 
-import jakarta.validation.Valid;
 import learning.example.supabase.DTOs.AccountRequest;
 import learning.example.supabase.DTOs.AccountResponse;
 import learning.example.supabase.DTOs.LoginRequest;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 

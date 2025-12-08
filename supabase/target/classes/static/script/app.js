@@ -1,24 +1,35 @@
+// API Base URL - UPDATE THIS to your backend URL
 const API_URL = 'http://localhost:8080/api';
 
 let currentAccount = null;
+let authToken = null;
 let allTodos = [];
 
 // Check session on page load
 window.addEventListener('DOMContentLoaded', async () => {
-    await checkSession();
+    await checkAuth();
 });
 
-// Check if user has active session
-async function checkSession() {
+// Check if user has valid token
+async function checkAuth() {
+    authToken = localStorage.getItem('authToken');
+
+    if (!authToken) {
+        console.log('No token found');
+        return;
+    }
+
     try {
         const response = await fetch(`${API_URL}/accounts/me`, {
             method: 'GET',
-            credentials: 'include'
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (response.ok) {
             currentAccount = await response.json();
-            console.log('Session found for user:', currentAccount.username);
+            console.log('Token valid for user:', currentAccount.username);
 
             // Show todo section
             const authSection = document.getElementById('authSection');
@@ -31,10 +42,15 @@ async function checkSession() {
                 await loadTodos();
             }
         } else {
-            console.log('No active session');
+            // Token invalid or expired
+            console.log('Token invalid, clearing...');
+            localStorage.removeItem('authToken');
+            authToken = null;
         }
     } catch (error) {
-        console.log('Session check failed:', error);
+        console.log('Auth check failed:', error);
+        localStorage.removeItem('authToken');
+        authToken = null;
     }
 }
 
@@ -73,13 +89,20 @@ if (loginForm) {
         try {
             const response = await fetch(`${API_URL}/accounts/login`, {
                 method: 'POST',
-                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
 
             if (response.ok) {
-                currentAccount = await response.json();
+                const data = await response.json();
+                currentAccount = data.account;
+                authToken = data.token;
+
+                // Store token in localStorage
+                localStorage.setItem('authToken', authToken);
+
+                console.log('Login successful, token stored');
+
                 document.getElementById('authSection').classList.add('hidden');
                 document.getElementById('todoSection').classList.remove('hidden');
                 document.getElementById('currentUser').textContent = currentAccount.username;
@@ -125,15 +148,10 @@ if (registerForm) {
 // Logout
 function logout() {
     currentAccount = null;
+    authToken = null;
+    localStorage.removeItem('authToken');
 
-    fetch(`${API_URL}/accounts/logout`, {
-        method: 'POST',
-        credentials: 'include'
-    }).then(() => {
-        console.log('Logged out successfully');
-    }).catch(err => {
-        console.log('Logout error:', err);
-    });
+    console.log('Logged out, token removed');
 
     document.getElementById('authSection').classList.remove('hidden');
     document.getElementById('todoSection').classList.add('hidden');
@@ -146,7 +164,9 @@ async function loadTodos() {
     try {
         const response = await fetch(`${API_URL}/todos/my`, {
             method: 'GET',
-            credentials: 'include'
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (response.status === 401) {
@@ -213,8 +233,8 @@ function renderTodos(todos) {
         const searchInput = document.getElementById('searchInput');
         const searchTerm = searchInput ? searchInput.value : '';
         const message = searchTerm
-            ? `No todos found matching "${searchTerm}"`
-            : 'No todos yet. Add your first task above!';
+            ? `No todos found matching "${searchTerm}" 🔍`
+            : 'No todos yet. Add your first task above! 🎯';
         list.innerHTML = `<li class="empty-state">${message}</li>`;
         return;
     }
@@ -225,7 +245,7 @@ function renderTodos(todos) {
 
         // Truncate title and note
         const truncatedTitle = todo.title.length > 50 ? todo.title.substring(0, 50) + '...' : todo.title;
-        const truncatedNote = todo.note && todo.note.length > 90 ? todo.note.substring(0, 90) + '...' : todo.note;
+        const truncatedNote = todo.note && todo.note.length > 80 ? todo.note.substring(0, 80) + '...' : todo.note;
 
         li.innerHTML = `
             <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} 
@@ -255,13 +275,14 @@ if (addTodoForm) {
         try {
             const response = await fetch(`${API_URL}/todos`, {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
                 body: JSON.stringify({
                     title,
                     note,
-                    completed: false,
-                    accountId: currentAccount.id
+                    completed: false
                 })
             });
 
@@ -283,8 +304,10 @@ async function toggleTodo(id, completed) {
     try {
         await fetch(`${API_URL}/todos/${id}`, {
             method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
             body: JSON.stringify({ completed })
         });
         await loadTodos();

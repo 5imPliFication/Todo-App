@@ -1,95 +1,42 @@
+// API Base URL - UPDATE THIS to your backend URL
 const API_URL = 'http://localhost:8080/api';
 
 let currentTodo = null;
 let currentAccount = null;
-let originalTodoData = null; // To track changes for cancel
-let hasUnsavedChanges = false;
+let authToken = null;
 
-// Check session and load todo on page load
+// Check auth and load todo on page load
 window.addEventListener('DOMContentLoaded', async () => {
-    await checkSessionAndLoadTodo();
-    setupFormListeners();
-    setupBeforeUnload();
+    await checkAuthAndLoadTodo();
 });
 
-// Warn before leaving page with unsaved changes
-function setupBeforeUnload() {
-    window.addEventListener('beforeunload', (e) => {
-        if (hasUnsavedChanges) {
-            e.preventDefault();
-            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
-        }
-    });
-}
-
-// Listen for form changes
-function setupFormListeners() {
-    const titleInput = document.getElementById('todoTitle');
-    const noteInput = document.getElementById('todoNote');
-    const completedInput = document.getElementById('todoCompleted');
-    const saveBtn = document.getElementById('saveBtn');
-
-    titleInput.addEventListener('input', checkForChanges);
-    noteInput.addEventListener('input', checkForChanges);
-    completedInput.addEventListener('change', checkForChanges);
-
-    // Enable/disable save button based on validation
-    titleInput.addEventListener('input', validateForm);
-}
-
-// Validate form and update save button
-function validateForm() {
-    const titleInput = document.getElementById('todoTitle');
-    const titleError = document.getElementById('titleError');
-    const saveBtn = document.getElementById('saveBtn');
-
-    if (titleInput.value.trim() === '') {
-        titleError.textContent = 'Title is required';
-        saveBtn.disabled = true;
-        return false;
-    } else {
-        titleError.textContent = '';
-        saveBtn.disabled = !hasUnsavedChanges;
-        return true;
-    }
-}
-
-// Check if form has changed
-function checkForChanges() {
-    if (!currentTodo || !originalTodoData) return;
-
-    const titleInput = document.getElementById('todoTitle');
-    const noteInput = document.getElementById('todoNote');
-    const completedInput = document.getElementById('todoCompleted');
-
-    const titleChanged = titleInput.value !== originalTodoData.title;
-    const noteChanged = noteInput.value !== (originalTodoData.note || '');
-    const completedChanged = completedInput.checked !== originalTodoData.completed;
-
-    hasUnsavedChanges = titleChanged || noteChanged || completedChanged;
-
-    // Update save button
-    const saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = !hasUnsavedChanges || !validateForm();
-
-    return hasUnsavedChanges;
-}
-
-async function checkSessionAndLoadTodo() {
+async function checkAuthAndLoadTodo() {
     try {
-        // Check session first
-        const sessionResponse = await fetch(`${API_URL}/accounts/me`, {
-            method: 'GET',
-            credentials: 'include'
-        });
+        // Check if token exists
+        authToken = localStorage.getItem('authToken');
 
-        if (!sessionResponse.ok) {
+        if (!authToken) {
             // Not logged in, redirect to home
             window.location.href = 'index.html';
             return;
         }
 
-        currentAccount = await sessionResponse.json();
+        // Verify token is valid
+        const authResponse = await fetch(`${API_URL}/accounts/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (!authResponse.ok) {
+            // Token invalid, redirect to login
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        currentAccount = await authResponse.json();
 
         // Get todo ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -113,7 +60,9 @@ async function loadTodoDetail(id) {
     try {
         const response = await fetch(`${API_URL}/todos/${id}`, {
             method: 'GET',
-            credentials: 'include'
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (!response.ok) {
@@ -121,8 +70,7 @@ async function loadTodoDetail(id) {
         }
 
         currentTodo = await response.json();
-        originalTodoData = { ...currentTodo }; // Store original for comparison
-        renderTodoForm();
+        renderTodoDetail();
 
     } catch (error) {
         showMessage('detailMessage', 'Failed to load todo details', true);
@@ -132,166 +80,96 @@ async function loadTodoDetail(id) {
     }
 }
 
-function renderTodoForm() {
-    // Fill form fields
-    document.getElementById('todoTitle').value = currentTodo.title;
-    document.getElementById('todoNote').value = currentTodo.note || '';
-    document.getElementById('todoCompleted').checked = currentTodo.completed;
-    document.getElementById('todoId').value = currentTodo.id;
+function renderTodoDetail() {
+    document.getElementById('todoTitle').textContent = currentTodo.title;
+    document.getElementById('todoNote').textContent = currentTodo.note || 'No notes';
 
-    // Format dates
-    if (currentTodo.createdAt) {
-        document.getElementById('createdDate').textContent = formatDate(currentTodo.createdAt);
+    const completedBadge = document.getElementById('todoCompleted');
+    if (currentTodo.completed) {
+        completedBadge.textContent = '✓ Completed';
+        completedBadge.className = 'detail-value completed-badge yes';
+    } else {
+        completedBadge.textContent = '○ Not Completed';
+        completedBadge.className = 'detail-value completed-badge no';
     }
-    if (currentTodo.updatedAt) {
-        document.getElementById('updatedDate').textContent = formatDate(currentTodo.updatedAt);
-    }
-
-    // Set initial save button state
-    const saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = true;
-    hasUnsavedChanges = false;
-
-    // Validate form
-    validateForm();
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 }
 
 function showMessage(elementId, message, isError = false) {
     const el = document.getElementById(elementId);
     el.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
-    el.style.display = 'block';
-
-    // Auto-hide after 4 seconds
-    setTimeout(() => {
-        el.style.display = 'none';
-        el.innerHTML = '';
-    }, 4000);
+    setTimeout(() => el.innerHTML = '', 4000);
 }
 
-// SAVE TODO
-async function saveTodo() {
-    // Validate first
-    if (!validateForm()) {
-        showMessage('detailMessage', 'Please fix validation errors', true);
-        return;
-    }
-
-    const saveBtn = document.getElementById('saveBtn');
-    const originalText = saveBtn.innerHTML;
-
+// Toggle completion
+async function toggleCompletion() {
     try {
-        // Show loading state
-        saveBtn.innerHTML = '⏳ Saving...';
-        saveBtn.disabled = true;
-
-        const titleInput = document.getElementById('todoTitle');
-        const noteInput = document.getElementById('todoNote');
-        const completedInput = document.getElementById('todoCompleted');
-
-        const updatedTodo = {
-            title: titleInput.value.trim(),
-            note: noteInput.value.trim(),
-            completed: completedInput.checked
-        };
-
+        const newStatus = !currentTodo.completed;
         const response = await fetch(`${API_URL}/todos/${currentTodo.id}`, {
             method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedTodo)
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ completed: newStatus })
         });
 
         if (response.ok) {
-            const updatedData = await response.json();
-
-            // Update current todo and original data
-            currentTodo = updatedData;
-            originalTodoData = { ...currentTodo };
-            hasUnsavedChanges = false;
-
-            // Update dates if provided
-            if (updatedData.updatedAt) {
-                document.getElementById('updatedDate').textContent = formatDate(updatedData.updatedAt);
-            }
-
-            showMessage('detailMessage', 'Todo saved successfully! ✓');
-
-            // Reset save button
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = true;
-
+            currentTodo.completed = newStatus;
+            renderTodoDetail();
+            showMessage('detailMessage', 'Status updated successfully! ✓');
         } else {
-            const errorText = await response.text();
-            showMessage('detailMessage', `Failed to save: ${errorText || 'Unknown error'}`, true);
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
+            showMessage('detailMessage', 'Failed to update status', true);
         }
-
     } catch (error) {
-        console.error('Save error:', error);
-        showMessage('detailMessage', 'Network error. Please try again.', true);
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
+        showMessage('detailMessage', 'Failed to update status', true);
     }
 }
 
-// CANCEL EDIT
-function cancelEdit() {
-    if (hasUnsavedChanges) {
-        if (!confirm('You have unsaved changes. Are you sure you want to cancel?')) {
-            return;
+// Edit todo
+function editTodo() {
+    const newTitle = prompt('Edit Title:', currentTodo.title);
+    if (newTitle === null) return;
+
+    const newNote = prompt('Edit Note:', currentTodo.note || '');
+    if (newNote === null) return;
+
+    updateTodo(newTitle, newNote);
+}
+
+async function updateTodo(title, note) {
+    try {
+        const response = await fetch(`${API_URL}/todos/${currentTodo.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ title, note })
+        });
+
+        if (response.ok) {
+            currentTodo.title = title;
+            currentTodo.note = note;
+            renderTodoDetail();
+            showMessage('detailMessage', 'Todo updated successfully! ✓');
+        } else {
+            showMessage('detailMessage', 'Failed to update todo', true);
         }
-    }
-
-    // Restore original values
-    if (originalTodoData) {
-        document.getElementById('todoTitle').value = originalTodoData.title;
-        document.getElementById('todoNote').value = originalTodoData.note || '';
-        document.getElementById('todoCompleted').checked = originalTodoData.completed;
-
-        hasUnsavedChanges = false;
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = true;
-
-        validateForm();
-        showMessage('detailMessage', 'Changes discarded', false);
-    }
-
-    // If no changes, go back to list
-    if (!hasUnsavedChanges) {
-        window.location.href = 'index.html';
+    } catch (error) {
+        showMessage('detailMessage', 'Failed to update todo', true);
     }
 }
 
-// DELETE TODO with confirmation modal
-function confirmDelete() {
-    const modal = document.getElementById('deleteModal');
-    modal.style.display = 'flex';
-}
-
-function closeModal() {
-    const modal = document.getElementById('deleteModal');
-    modal.style.display = 'none';
-}
-//delete
+// Delete todo
 async function deleteTodo() {
-    closeModal();
+    if (!confirm('Are you sure you want to delete this todo?')) return;
 
     try {
-        const deleteBtn = document.querySelector('.btn-delete');
-        const originalText = deleteBtn.innerHTML;
-        deleteBtn.innerHTML = '⏳ Deleting...';
-        deleteBtn.disabled = true;
-
         const response = await fetch(`${API_URL}/todos/${currentTodo.id}`, {
             method: 'DELETE',
-            credentials: 'include'
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (response.ok) {
@@ -300,35 +178,9 @@ async function deleteTodo() {
                 window.location.href = 'index.html';
             }, 1500);
         } else {
-            const errorText = await response.text();
-            showMessage('detailMessage', `Failed to delete: ${errorText || 'Unknown error'}`, true);
-            deleteBtn.innerHTML = originalText;
-            deleteBtn.disabled = false;
+            showMessage('detailMessage', 'Failed to delete todo', true);
         }
-
     } catch (error) {
-        console.error('Delete error:', error);
-        showMessage('detailMessage', 'Network error. Please try again.', true);
-        const deleteBtn = document.querySelector('.btn-delete');
-        deleteBtn.innerHTML = '🗑️ Delete Todo';
-        deleteBtn.disabled = false;
-    }
-    // Close modal when clicking outside
-    document.getElementById('editModal').addEventListener('click', (e) => {
-        if (e.target.id === 'editModal') {
-            closeModal();
-        }
-    });
-
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        showMessage('detailMessage', 'Failed to delete todo', true);
     }
 }
-
-// Add these missing HTML elements to your page for the new features:
-// 1. Add error span: <div class="error-message" id="titleError"></div>
-// 2. Add metadata display (optional but nice)
-// 3. Add delete confirmation modal (see previous HTML)

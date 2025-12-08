@@ -1,19 +1,16 @@
-package learning.example.supabase.Service.ServiceImpl;
+package learning.example.supabase.service.serviceImpl;
 
 import learning.example.supabase.DTOs.AccountResponse;
 import learning.example.supabase.DTOs.AccountRequest;
 import learning.example.supabase.DTOs.LoginRequest;
-import learning.example.supabase.DTOs.TodoResponse;
-import learning.example.supabase.Entity.Account;
-import learning.example.supabase.Entity.Todo;
-import learning.example.supabase.Repository.AccountRepository;
-import learning.example.supabase.Service.AccountService;
+import learning.example.supabase.entity.Account;
+import learning.example.supabase.repository.AccountRepository;
+import learning.example.supabase.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AccountServiceImpl implements AccountService {

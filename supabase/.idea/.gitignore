@@ -29,6 +29,7 @@ target/
 # Local environment configs
 application-local.properties
 application-dev.properties
+application.properties
 
 # Embedded server logs
 *.pid
@@ -49,7 +50,6 @@ Desktop.ini
 
 ### Logs ###
 logs/
-*.log
 *.tmp
 
 ### Node / Frontend (if you add React or NPM later) ###

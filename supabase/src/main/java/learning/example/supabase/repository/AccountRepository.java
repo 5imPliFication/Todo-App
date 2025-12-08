@@ -1,6 +1,6 @@
-package learning.example.supabase.Repository;
+package learning.example.supabase.repository;
 
-import learning.example.supabase.Entity.Account;
+import learning.example.supabase.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,16 +1,13 @@
-package learning.example.supabase.Service.ServiceImpl;
+package learning.example.supabase.service.serviceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.constraints.NotNull;
-import learning.example.supabase.DTOs.AccountRequest;
-import learning.example.supabase.DTOs.AccountResponse;
 import learning.example.supabase.DTOs.TodoRequest;
 import learning.example.supabase.DTOs.TodoResponse;
-import learning.example.supabase.Entity.Account;
-import learning.example.supabase.Entity.Todo;
-import learning.example.supabase.Repository.AccountRepository;
-import learning.example.supabase.Repository.TodoRepository;
-import learning.example.supabase.Service.TodoService;
+import learning.example.supabase.entity.Account;
+import learning.example.supabase.entity.Todo;
+import learning.example.supabase.repository.AccountRepository;
+import learning.example.supabase.repository.TodoRepository;
+import learning.example.supabase.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -70,8 +67,8 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public TodoResponse createTodo(TodoRequest request, Long accountId) {
-        Account account = accountRepo.findById(accountId)
+    public TodoResponse createTodo(TodoRequest request) {
+        Account account = accountRepo.findById(request.getAccountId())
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         Todo todo = new Todo();

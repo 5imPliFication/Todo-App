@@ -1,4 +1,4 @@
-package learning.example.supabase.Entity;
+package learning.example.supabase.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

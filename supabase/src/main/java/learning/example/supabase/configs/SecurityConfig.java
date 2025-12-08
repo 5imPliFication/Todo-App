@@ -1,6 +1,5 @@
 package learning.example.supabase.configs;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,42 +17,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final SessionAuthenticationFilter sessionAuthenticationFilter;
-
     @Autowired
-    public SecurityConfig(SessionAuthenticationFilter sessionAuthenticationFilter) {
-        this.sessionAuthenticationFilter = sessionAuthenticationFilter;
-    }
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .securityContext(security -> security.requireExplicitSave(false))
-                .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) //Add filter
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions, use jwt token instead
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/accounts/register", "/api/accounts/login", "/api/accounts/me").permitAll()
+                        .requestMatchers("/api/accounts/register", "/api/accounts/login").permitAll()
                         .requestMatchers("/api/todos/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(logout -> logout
-                        .logoutUrl("/api/accounts/logout")
-                        .logoutSuccessHandler((req, res, auth) -> {
-                            res.setStatus(HttpServletResponse.SC_OK);
-                        })
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, exception) ->
-                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED))
-                );
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
