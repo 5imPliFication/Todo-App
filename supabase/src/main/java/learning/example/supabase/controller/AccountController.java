@@ -87,6 +87,7 @@ public class AccountController {
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         System.out.println("=== Logout Request ===");
 
+        //delete existing JSESSIONID
         HttpSession session = request.getSession(false);
         if (session != null) {
             System.out.println("Invalidating session: " + session.getId());
