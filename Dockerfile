@@ -1,5 +1,5 @@
 # ---- Build Stage ----
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
+FROM maven:4.0.0-eclipse-temurin-21 AS builder
 WORKDIR /app
 
 COPY supabase/pom.xml .
@@ -9,7 +9,7 @@ COPY supabase/src ./src
 RUN mvn -q package -DskipTests
 
 # ---- Run Stage ----
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 COPY --from=builder /app/target/*.jar app.jar
