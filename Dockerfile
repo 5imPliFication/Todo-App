@@ -2,10 +2,10 @@
 FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
 
-COPY pom.xml .
+COPY supabase/pom.xml .
 RUN mvn -q dependency:resolve dependency:resolve-plugins
 
-COPY src ./src
+COPY supabase/src ./src
 RUN mvn -q package -DskipTests
 
 # ---- Run Stage ----
