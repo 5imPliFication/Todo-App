@@ -70,7 +70,6 @@ async function checkAuthAndLoadTodo() {
 
         await loadTodoDetail(todoId);
 
-        // ✅ FIX: Setup listeners after loading todo
         setupFormListeners();
         setupBeforeUnload();
 
@@ -93,7 +92,6 @@ function validateForm() {
         titleError.textContent = isValid ? '' : 'Title is required';
     }
 
-    // ✅ FIX: Only enable if valid AND has changes
     saveBtn.disabled = !isValid || !hasUnsavedChanges;
 
     return isValid;
@@ -134,7 +132,6 @@ async function loadTodoDetail(id) {
 
         currentTodo = await response.json();
 
-        // ✅ FIX: Save original data for comparison
         originalTodoData = { ...currentTodo };
 
         renderTodoDetail();
@@ -212,7 +209,6 @@ async function saveTodo() {
         if (response.ok) {
             currentTodo = await response.json();
 
-            // ✅ FIX: Update original data after save
             originalTodoData = { ...currentTodo };
             hasUnsavedChanges = false;
 
@@ -295,7 +291,6 @@ function closeModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// ✅ FIX: Add utility function for date formatting (if you need it)
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
