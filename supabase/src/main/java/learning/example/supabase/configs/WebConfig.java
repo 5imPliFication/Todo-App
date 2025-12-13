@@ -19,7 +19,8 @@ public class WebConfig implements WebMvcConfigurer {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5500",
                 "http://localhost:8080",
-                "http://localhost:8000"
+                "http://localhost:8000",
+                "https://todo-app-wp36.onrender.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
