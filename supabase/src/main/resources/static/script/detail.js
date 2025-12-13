@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8080/api';
+const API_URL = 'https://todo-app-wp36.onrender.com/api';
 
 let currentTodo = null;
 let currentAccount = null;
